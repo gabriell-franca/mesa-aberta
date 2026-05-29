@@ -1,0 +1,11 @@
+{
+  "name": "mesa-aberta",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo \"Em breve\"",
+    "build": "echo \"Em breve\""
+  },
+  "author": "Gabriel",
+  "license": "MIT"
+}
