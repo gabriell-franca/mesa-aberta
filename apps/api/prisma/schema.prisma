@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Encounter {
+  id                String      @id @default(cuid())
+  name              String
+  description       String?
+  status            String      @default("PLANNED")
+  round             Int         @default(0)
+  activeCombatantId String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  combatants Combatant[]
+
+  @@map("encounters")
+}
+
+model Combatant {
+  id              String   @id @default(cuid())
+  encounterId     String
+  name            String
+  initiative      Int      @default(0)
+  hpCurrent       Int
+  hpMax           Int
+  hpTemp          Int      @default(0)
+  ac              Int
+  exhaustionLevel Int      @default(0)
+  conditions      String[]
+  isPlayer        Boolean  @default(false)
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  encounter Encounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+
+  @@map("combatants")
+}
