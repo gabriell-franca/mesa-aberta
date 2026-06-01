@@ -1,0 +1,14 @@
+### Verificar servidor
+GET http://localhost:3001/health
+
+### Criar um encontro
+POST http://localhost:3001/encounters
+Content-Type: application/json
+
+{
+  "name": "Emboscada na Floresta",
+  "description": "Orcs atacam o grupo no caminho para Triel"
+}
+
+### Buscar encontro (substitui o ID depois de criar)
+GET http://localhost:3001/encounters/cmpvgtdxb0000c2d4g9oe38u6

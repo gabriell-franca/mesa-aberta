@@ -1,5 +1,6 @@
 import Fastify from 'fastify'
 import prisma from './lib/prisma'
+import { encounterRoutes } from './modules/combat/encounter.routes'
 
 const app = Fastify({ logger: true })
 
@@ -7,10 +8,7 @@ app.get('/health', async () => {
   return { status: 'ok', projeto: 'Mesa Aberta' }
 })
 
-app.get('/test-db', async () => {
-  const encontros = await prisma.encounter.findMany()
-  return { encontros, total: encontros.length }
-})
+app.register(encounterRoutes)
 
 const PORT = 3001
 
