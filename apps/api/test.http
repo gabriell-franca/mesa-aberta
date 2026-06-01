@@ -12,3 +12,29 @@ Content-Type: application/json
 
 ### Buscar encontro (substitui o ID depois de criar)
 GET http://localhost:3001/encounters/cmpvgtdxb0000c2d4g9oe38u6
+
+
+
+### Adicionar monstro ao encontro
+POST http://localhost:3001/encounters/cmpvgtdxb0000c2d4g9oe38u6/combatants
+Content-Type: application/json
+
+{
+  "name": "Orc Guerreiro",
+  "initiative": 12,
+  "hpMax": 15,
+  "ac": 13,
+  "isPlayer": false
+}
+
+### Adicionar jogador ao encontro
+POST http://localhost:3001/encounters/cmpvgtdxb0000c2d4g9oe38u6/combatants
+Content-Type: application/json
+
+{
+  "name": "Dan",
+  "initiative": 18,
+  "hpMax": 28,
+  "ac": 15,
+  "isPlayer": true
+}
