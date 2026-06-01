@@ -66,4 +66,43 @@ export async function encounterRoutes(app: FastifyInstance) {
         return reply.status(201).send(combatant)
     })
 
+    // Iniciar o combate
+    app.post('/encounters/:id/start', async (request, reply) => {
+        const { id } = request.params as { id: string }
+
+        const encounter = await prisma.encounter.findUnique({
+            where: { id },
+            include: { combatants: true },
+        })
+
+        if (!encounter) {
+            return reply.status(404).send({ error: 'Encontro não encontrado' })
+        }
+
+        if (encounter.status === 'ACTIVE') {
+            return reply.status(400).send({ error: 'Combate já está em andamento' })
+        }
+
+        if (encounter.combatants.length === 0) {
+            return reply.status(400).send({ error: 'Adicione combatentes antes de iniciar' })
+        }
+
+        // Ordena por iniciativa — maior vai primeiro
+        const ordenados = encounter.combatants.sort(
+            (a, b) => b.initiative - a.initiative
+        )
+
+        const atualizado = await prisma.encounter.update({
+            where: { id },
+            data: {
+                status: 'ACTIVE',
+                round: 1,
+                activeCombatantId: ordenados[0].id,
+            },
+            include: { combatants: true },
+        })
+
+        return atualizado
+    })
+
 }

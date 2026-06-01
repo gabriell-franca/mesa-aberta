@@ -38,3 +38,6 @@ Content-Type: application/json
   "ac": 15,
   "isPlayer": true
 }
+
+### Iniciar o combate
+POST http://localhost:3001/encounters/cmpvgtdxb0000c2d4g9oe38u6/start
