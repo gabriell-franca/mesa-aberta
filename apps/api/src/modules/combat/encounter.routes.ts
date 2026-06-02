@@ -102,6 +102,53 @@ export async function encounterRoutes(app: FastifyInstance) {
             include: { combatants: true },
         })
 
+
+
+        return atualizado
+    })
+
+    // Passar para o próximo turno
+    app.post('/encounters/:id/next-turn', async (request, reply) => {
+        const { id } = request.params as { id: string }
+
+        const encounter = await prisma.encounter.findUnique({
+            where: { id },
+            include: { combatants: true },
+        })
+
+        if (!encounter) {
+            return reply.status(404).send({ error: 'Encontro não encontrado' })
+        }
+
+        if (encounter.status !== 'ACTIVE') {
+            return reply.status(400).send({ error: 'Combate não está em andamento' })
+        }
+
+        // Ordena por iniciativa — mesma lógica do /start
+        const ordenados = encounter.combatants.sort(
+            (a, b) => b.initiative - a.initiative
+        )
+
+        // Acha a posição do combatente atual na lista
+        const indexAtual = ordenados.findIndex(
+            (c) => c.id === encounter.activeCombatantId
+        )
+
+        const ehUltimo = indexAtual === ordenados.length - 1
+
+        const atualizado = await prisma.encounter.update({
+            where: { id },
+            data: {
+                // Se era o último, volta pro primeiro e incrementa a rodada
+                // Se não, só avança um
+                activeCombatantId: ehUltimo
+                    ? ordenados[0].id
+                    : ordenados[indexAtual + 1].id,
+                round: ehUltimo ? encounter.round + 1 : encounter.round,
+            },
+            include: { combatants: true },
+        })
+
         return atualizado
     })
 
