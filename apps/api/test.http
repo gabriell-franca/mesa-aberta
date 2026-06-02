@@ -44,3 +44,33 @@ POST http://localhost:3001/encounters/cmpvgtdxb0000c2d4g9oe38u6/start
 
 ### Passar o turno
 POST http://localhost:3001/encounters/cmpvgtdxb0000c2d4g9oe38u6/next-turn
+
+### Aplicar dano no Orc
+PATCH http://localhost:3001/encounters/cmpvgtdxb0000c2d4g9oe38u6/combatants/cmpvh20r10001k1spnivjld8o/hp
+Content-Type: application/json
+
+{
+  "valor": 8,
+  "tipo": "dano"
+}
+
+### Curar o Dan
+PATCH http://localhost:3001/encounters/cmpvgtdxb0000c2d4g9oe38u6/combatants/cmpvh23tf0003k1spibxzt8nl/hp
+Content-Type: application/json
+
+{
+  "valor": 5,
+  "tipo": "cura"
+}
+
+### Adicionar condição e exaustão no Dan
+PATCH http://localhost:3001/encounters/cmpvgtdxb0000c2d4g9oe38u6/combatants/cmpvh23tf0003k1spibxzt8nl/status
+Content-Type: application/json
+
+{
+  "exhaustionLevel": 2,
+  "conditions": ["poisoned", "prone"]
+}
+
+### Encerrar o combate
+POST http://localhost:3001/encounters/cmpvgtdxb0000c2d4g9oe38u6/end
