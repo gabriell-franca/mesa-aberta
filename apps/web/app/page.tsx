@@ -8,7 +8,7 @@ export default function home() {
         <p style={{ marginTop: '1rem', color: 'var(--sl)' }}>
           Ferramenta gratuita para mestres de RPG
         </p>
-        <a href="/enconteurs" style={{ marginTop: '2rem', display: 'inline-block', blackground: 'var(--cr)', color: 'var(--m1)', padding: '0.75rem 1.5rem', borderRadius: '8px', textDecoration: 'none' }}>
+        <a href="/encounters" style={{ marginTop: '2rem', display: 'inline-block', background: 'var(--cr)', color: 'var(--ml)', padding: '0.75rem 1.5rem', borderRadius: '8px', textDecoration: 'none' }}>
           Abrir tracker
         </a>
       </div>
