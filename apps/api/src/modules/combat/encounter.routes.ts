@@ -30,6 +30,14 @@ export async function encounterRoutes(app: FastifyInstance) {
         return encounter
     })
 
+    // Listar todos os encontros
+    app.get('/encounters/list', async () => {
+        const encounters = await prisma.encounter.findMany({
+            orderBy: { createdAt: 'desc' },
+        })
+        return encounters
+    })
+
     // Adicionar combatente ao encontro
     app.post('/encounters/:id/combatants', async (request, reply) => {
         const { id } = request.params as { id: string }

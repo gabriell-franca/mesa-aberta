@@ -1,17 +1,22 @@
 import Fastify from 'fastify'
-import prisma from './lib/prisma'
+import cors from '@fastify/cors'
 import { encounterRoutes } from './modules/combat/encounter.routes'
 
 const app = Fastify({ logger: true })
 
-app.get('/health', async () => {
-  return { status: 'ok', projeto: 'Mesa Aberta' }
-})
+async function main() {
+  await app.register(cors, {
+    origin: 'http://localhost:3000',
+  })
 
-app.register(encounterRoutes)
+  app.get('/health', async () => {
+    return { status: 'ok', projeto: 'Mesa Aberta' }
+  })
 
-const PORT = 3001
+  await app.register(encounterRoutes)
 
-app.listen({ port: PORT, host: '0.0.0.0' }, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`)
-})
+  await app.listen({ port: 3001, host: '0.0.0.0' })
+  console.log('Servidor rodando em http://localhost:3001')
+}
+
+main()
