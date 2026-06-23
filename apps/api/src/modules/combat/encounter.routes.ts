@@ -74,6 +74,14 @@ export async function encounterRoutes(app: FastifyInstance) {
         return reply.status(201).send(combatant)
     })
 
+
+    // Remover combatente do encontro
+    app.delete('/encounters/:id/combatants/:combatantId', async (request, reply) => {
+        const { combatantId } = request.params as { id: string; combatantId: string }
+        await prisma.combatant.delete({ where: { id: combatantId } })
+        return reply.status(204).send()
+    })
+
     // Iniciar o combate
     app.post('/encounters/:id/start', async (request, reply) => {
         const { id } = request.params as { id: string }
@@ -113,6 +121,40 @@ export async function encounterRoutes(app: FastifyInstance) {
 
 
         return atualizado
+    })
+
+    // Salvar recursos/notas do combatente
+    app.patch('/encounters/:id/combatants/:combatantId/notes', async (request, reply) => {
+        const { combatantId } = request.params as { id: string; combatantId: string }
+        const { notes } = request.body as { notes: string }
+        const updated = await prisma.combatant.update({
+            where: { id: combatantId },
+            data: { notes },
+        })
+        return updated
+    })
+
+
+    // Pausar combate (ACTIVE → IDLE, mantém tudo)
+    app.post('/encounters/:id/pause', async (request, reply) => {
+        const { id } = request.params as { id: string }
+        const updated = await prisma.encounter.update({
+            where: { id },
+            data: { status: 'IDLE' },
+            include: { combatants: true },
+        })
+        return updated
+    })
+
+    // Reiniciar rodadas (zera rodadas, mantém combatentes)
+    app.post('/encounters/:id/restart', async (request, reply) => {
+        const { id } = request.params as { id: string }
+        const updated = await prisma.encounter.update({
+            where: { id },
+            data: { status: 'IDLE', round: 0, activeCombatantId: null },
+            include: { combatants: true },
+        })
+        return updated
     })
 
     // Passar para o próximo turno
@@ -266,7 +308,7 @@ export async function encounterRoutes(app: FastifyInstance) {
         const atualizado = await prisma.encounter.update({
             where: { id },
             data: {
-                status: 'ENDED',
+                status: 'IDLE',
                 activeCombatantId: null,
             },
             include: { combatants: true },

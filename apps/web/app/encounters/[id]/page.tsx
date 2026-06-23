@@ -1,16 +1,20 @@
+import { API_URL } from '../../../lib/api'
 import TrackerActions from './_components/TrackerActions'
 import CombatantCard from './_components/CombatantCard'
 import AddCombatantForm from './_components/AddCombatantForm'
-import { API_URL } from '../../../lib/api'
 
 async function getEncounter(id: string) {
     try {
         const res = await fetch(`${API_URL}/encounters/${id}`, { cache: 'no-store' })
         if (!res.ok) return null
         return res.json()
-    } catch {
-        return null
-    }
+    } catch { return null }
+}
+
+const statusBadge: Record<string, { label: string; color: string }> = {
+    PLANNED: { label: 'planejado', color: 'var(--sl)' },
+    ACTIVE: { label: 'em combate', color: '#50a050' },
+    ENDED: { label: 'encerrado', color: 'var(--slm)' },
 }
 
 export default async function EncounterPage({ params }: { params: Promise<{ id: string }> }) {
@@ -26,32 +30,46 @@ export default async function EncounterPage({ params }: { params: Promise<{ id: 
     }
 
     const ordenados = [...encounter.combatants].sort((a: { initiative: number }, b: { initiative: number }) => b.initiative - a.initiative)
+    const badge = statusBadge[encounter.status] ?? statusBadge.PLANNED
 
     return (
-        <main style={{ minHeight: '100vh', padding: '2rem', maxWidth: '720px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+        <main style={{ minHeight: '100vh', padding: '2.5rem 2rem', maxWidth: '680px', margin: '0 auto' }}>
+
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2rem', gap: '1rem' }}>
                 <div>
-                    <a href="/encounters" style={{ fontFamily: "'Lora', serif", fontSize: '0.8rem', color: 'var(--sl)', textDecoration: 'none' }}>← encontros</a>
-                    <h1 style={{ fontFamily: "'Cinzel', serif", fontSize: '1.25rem', fontWeight: 600, color: 'var(--ink)', marginTop: '0.25rem' }}>{encounter.name}</h1>
+                    <a href="/encounters" style={{ fontFamily: "'Lora', serif", fontSize: '12px', color: 'var(--slm)', textDecoration: 'none', fontStyle: 'italic' }}>← encontros</a>
+                    <h1 style={{ fontFamily: "'Cinzel', serif", fontSize: '1.5rem', fontWeight: 600, color: 'var(--ink)', margin: '6px 0 8px' }}>{encounter.name}</h1>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: badge.color, flexShrink: 0 }} />
+                        <span style={{ fontFamily: "'Lora', serif", fontSize: '12px', color: badge.color, fontStyle: 'italic' }}>{badge.label}</span>
+                    </div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontFamily: "'Lora', serif", fontSize: '0.7rem', fontStyle: 'italic', color: 'var(--slm)' }}>rodada</div>
-                    <div style={{ fontFamily: "'Cinzel', serif", fontSize: '2rem', fontWeight: 600, color: 'var(--cr)', lineHeight: 1 }}>{encounter.round || '—'}</div>
-                </div>
+                {encounter.round > 0 && (
+                    <div style={{ textAlign: 'center', background: 'var(--ml)', border: '1px solid var(--md)', borderRadius: '10px', padding: '12px 20px', flexShrink: 0 }}>
+                        <div style={{ fontFamily: "'Lora', serif", fontSize: '10px', fontStyle: 'italic', color: 'var(--slm)', marginBottom: '2px' }}>rodada</div>
+                        <div style={{ fontFamily: "'Cinzel', serif", fontSize: '2.25rem', fontWeight: 600, color: 'var(--cr)', lineHeight: 1 }}>{encounter.round}</div>
+                    </div>
+                )}
             </div>
 
             <TrackerActions encounterId={encounter.id} status={encounter.status} />
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '1rem' }}>
                 {ordenados.length === 0 ? (
-                    <p style={{ fontFamily: "'Lora', serif", fontSize: '0.875rem', fontStyle: 'italic', color: 'var(--slm)' }}>nenhum combatente ainda</p>
+                    <div style={{ background: 'var(--ml)', border: '1px dashed var(--md)', borderRadius: '10px', padding: '2rem', textAlign: 'center' }}>
+                        <p style={{ fontFamily: "'Lora', serif", fontSize: '0.875rem', fontStyle: 'italic', color: 'var(--slm)', margin: 0 }}>
+                            Nenhum combatente ainda — adicione abaixo para começar.
+                        </p>
+                    </div>
                 ) : (
                     ordenados.map((c: { id: string; encounterId: string; name: string; initiative: number; hpCurrent: number; hpMax: number; ac: number; exhaustionLevel: number; conditions: string[]; isPlayer: boolean }) => (
                         <CombatantCard key={c.id} c={c} isActive={c.id === encounter.activeCombatantId} />
                     ))
                 )}
             </div>
+
             <AddCombatantForm encounterId={encounter.id} />
+
         </main>
     )
 }
