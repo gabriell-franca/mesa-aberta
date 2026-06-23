@@ -157,6 +157,14 @@ export async function encounterRoutes(app: FastifyInstance) {
         return updated
     })
 
+
+    // Deletar encontro
+    app.delete('/encounters/:id', async (request, reply) => {
+        const { id } = request.params as { id: string }
+        await prisma.encounter.delete({ where: { id } })
+        return reply.status(204).send()
+    })
+
     // Passar para o próximo turno
     app.post('/encounters/:id/next-turn', async (request, reply) => {
         const { id } = request.params as { id: string }

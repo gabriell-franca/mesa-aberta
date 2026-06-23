@@ -1,5 +1,6 @@
 import { API_URL } from '../../lib/api'
 import NewEncounterButton from './_components/NewEncounterButton'
+import DeleteEncounterButton from './_components/DeleteEncounterButton'
 
 async function getEncounters() {
     try {
@@ -40,9 +41,12 @@ export default async function EncountersPage() {
                                     {e.status === 'ACTIVE' ? `rodada ${e.round} em andamento` : s.label}
                                 </div>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-                                <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: s.color }} />
-                                <span style={{ fontFamily: "'Lora', serif", fontSize: '11px', color: s.color }}>{s.label}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: s.color }} />
+                                    <span style={{ fontFamily: "'Lora', serif", fontSize: '11px', color: s.color }}>{s.label}</span>
+                                </div>
+                                <DeleteEncounterButton id={e.id} name={e.name} />
                             </div>
                         </a>
                     )
