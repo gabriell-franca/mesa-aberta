@@ -1,9 +1,11 @@
 import TrackerActions from './_components/TrackerActions'
 import CombatantCard from './_components/CombatantCard'
+import AddCombatantForm from './_components/AddCombatantForm'
+import { API_URL } from '../../../lib/api'
 
 async function getEncounter(id: string) {
     try {
-        const res = await fetch(`http://localhost:3001/encounters/${id}`, { cache: 'no-store' })
+        const res = await fetch(`${API_URL}/encounters/${id}`, { cache: 'no-store' })
         if (!res.ok) return null
         return res.json()
     } catch {
@@ -49,6 +51,7 @@ export default async function EncounterPage({ params }: { params: Promise<{ id: 
                     ))
                 )}
             </div>
+            <AddCombatantForm encounterId={encounter.id} />
         </main>
     )
 }

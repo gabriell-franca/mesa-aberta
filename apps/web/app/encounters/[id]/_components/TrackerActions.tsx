@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { API_URL } from '../../../../lib/api'
+
 
 type Props = {
     encounterId: string
@@ -14,7 +16,7 @@ export default function TrackerActions({ encounterId, status }: Props) {
 
     async function callEndpoint(endpoint: string) {
         setLoading(true)
-        await fetch(`http://localhost:3001/encounters/${encounterId}/${endpoint}`, {
+        await fetch(`${API_URL}/encounters/${encounterId}/${endpoint}`, {
             method: 'POST',
         })
         setLoading(false)

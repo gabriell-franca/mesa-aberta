@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { API_URL } from '../../../../lib/api'
 
 type Combatant = {
     id: string
@@ -28,7 +29,7 @@ export default function CombatantCard({ c, isActive }: { c: Combatant, isActive:
         const num = parseInt(valor)
         if (isNaN(num) || num <= 0 || !action) return
         setLoading(true)
-        await fetch(`http://localhost:3001/encounters/${c.encounterId}/combatants/${c.id}/hp`, {
+        await fetch(`${API_URL}/encounters/${c.encounterId}/combatants/${c.id}/hp`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ valor: num, tipo: action }),

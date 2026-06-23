@@ -1,8 +1,9 @@
-import NewEncounterButton from './[id]/_components/NewEncounterButton'
+import { API_URL } from '../../lib/api'
+import NewEncounterButton from './_components/NewEncounterButton'
 
 async function getEncounters() {
     try {
-        const res = await fetch('http://localhost:3001/encounters/list', {
+        const res = await fetch(`${API_URL}/encounters/list`, {
             cache: 'no-store'
         })
         if (!res.ok) return []

@@ -1,7 +1,8 @@
 'use client'
-
+import { API_URL } from '../../../lib/api'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+
 
 export default function NewEncounterButton() {
     const [loading, setLoading] = useState(false)
@@ -9,20 +10,20 @@ export default function NewEncounterButton() {
     const [showForm, setShowForm] = useState(false)
     const router = useRouter()
 
+
+    
     async function createEncounter() {
         if (!name.trim()) return
         setLoading(true)
 
-        await fetch('http://localhost:3001/encounters', {
+        const res = await fetch(`${API_URL}/encounters`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name }),
         })
 
-        setLoading(false)
-        setName('')
-        setShowForm(false)
-        router.refresh()
+        const encounter = await res.json()
+        router.push(`/encounters/${encounter.id}`)
     }
 
     if (!showForm) {
