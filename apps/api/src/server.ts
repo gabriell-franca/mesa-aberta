@@ -6,7 +6,11 @@ const app = Fastify({ logger: true })
 
 async function main() {
   await app.register(cors, {
-    origin: 'http://localhost:3000',
+    origin: [
+      'http://localhost:3000',
+      'https://mesa-aberta.vercel.app',
+      'https://mesa-aberta-web.vercel.app',
+    ],
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
   })
 
