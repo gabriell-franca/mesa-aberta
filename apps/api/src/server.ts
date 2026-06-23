@@ -7,6 +7,7 @@ const app = Fastify({ logger: true })
 async function main() {
   await app.register(cors, {
     origin: 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
   })
 
   app.get('/health', async () => {

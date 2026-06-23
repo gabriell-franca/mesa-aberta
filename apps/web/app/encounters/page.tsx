@@ -1,4 +1,4 @@
-import NewEncounterButton from './_components/NewEncounterButton'
+import NewEncounterButton from './[id]/_components/NewEncounterButton'
 
 async function getEncounters() {
     try {
