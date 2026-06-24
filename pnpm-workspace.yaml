@@ -1,11 +1,3 @@
 packages:
   - "apps/*"
   - "packages/*"
-
-onlyBuiltDependencies:
-  - esbuild
-  - prisma
-  - "@prisma/client"
-  - "@prisma/engines"
-  - sharp
-  - unrs-resolver
