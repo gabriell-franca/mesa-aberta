@@ -2,6 +2,7 @@
   "name": "mesa-aberta",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.4.0",
   "scripts": {
     "dev": "echo \"Em breve\"",
     "build": "echo \"Em breve\""
