@@ -3,16 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.4.0",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "prisma",
-      "@prisma/client",
-      "@prisma/engines",
-      "sharp",
-      "unrs-resolver"
-    ]
-  },
   "scripts": {
     "dev": "echo \"Em breve\"",
     "build": "echo \"Em breve\""
