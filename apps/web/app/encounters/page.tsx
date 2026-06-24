@@ -1,6 +1,6 @@
 import { API_URL } from '../../lib/api'
 import NewEncounterButton from './_components/NewEncounterButton'
-import DeleteEncounterButton from './_components/DeleteEncounterButton'
+import DeleteEncounterButton from '././_components/DeleteEncounterButton'
 
 async function getEncounters() {
     try {
