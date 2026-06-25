@@ -6,27 +6,83 @@ export default async function Home() {
 
   if (session) redirect('/encounters')
 
+  const bubble = {
+    background: 'var(--mb)',
+    padding: '8px 20px',
+    borderRadius: '999px',
+    display: 'inline-block',
+  }
+
   return (
-    <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ textAlign: 'center', maxWidth: '400px', padding: '2rem' }}>
-        <div style={{ fontFamily: "'Lora', serif", fontSize: '11px', fontStyle: 'italic', color: 'var(--slm)', letterSpacing: '0.08em', marginBottom: '12px' }}>
-          ferramenta gratuita para mestres de RPG
-        </div>
-        <h1 style={{ fontFamily: "'Cinzel', serif", fontSize: '2.5rem', fontWeight: 600, color: 'var(--ink)', margin: '0 0 8px' }}>
-          Mesa Aberta
-        </h1>
-        <p style={{ fontFamily: "'Lora', serif", fontSize: '1rem', color: 'var(--slm)', fontStyle: 'italic', marginBottom: '2.5rem', lineHeight: 1.6 }}>
-          Tracker de combate, bestiário e IA para a sua mesa — gratuito e open-source.
-        </p>
-        <a href="/api/auth/signin" style={{ fontFamily: "'Cinzel', serif", fontSize: '0.9rem', fontWeight: 600, background: 'var(--cr)', color: 'var(--ml)', padding: '0.875rem 2rem', borderRadius: '8px', textDecoration: 'none', letterSpacing: '0.04em', display: 'inline-block' }}>
-          Entrar com Google
-        </a>
-        <div style={{ marginTop: '1.5rem' }}>
-          <a href="https://github.com/gabriell-franca/mesa-aberta" target="_blank" rel="noreferrer" style={{ fontFamily: "'Lora', serif", fontSize: '12px', color: 'var(--slm)', textDecoration: 'none', fontStyle: 'italic' }}>
-            ver no GitHub →
-          </a>
-        </div>
-      </div>
+    <main style={{ position: 'relative', zIndex: 1, minHeight: '100vh', padding: '4rem 2rem 2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+      
+      <span style={{
+        ...bubble,
+        fontFamily: "'Lora', serif",
+        fontSize: '11px',
+        fontStyle: 'italic',
+        color: 'var(--sl)',
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+      }}>
+        ferramenta gratuita para mestres de RPG
+      </span>
+
+      <h1 style={{
+        ...bubble,
+        padding: '10px 32px',
+        fontFamily: "'Cinzel', serif",
+        fontSize: '2.5rem',
+        fontWeight: 600,
+        color: 'var(--ink)',
+        margin: 0,
+        letterSpacing: '0.02em',
+      }}>
+        Mesa Aberta
+      </h1>
+
+      <p style={{
+        ...bubble,
+        padding: '8px 24px',
+        fontFamily: "'Lora', serif",
+        fontSize: '0.95rem',
+        color: 'var(--sl)',
+        fontStyle: 'italic',
+        margin: 0,
+        maxWidth: '460px',
+        textAlign: 'center',
+      }}>
+        Tracker de combate, bestiário e IA para a sua mesa
+      </p>
+
+      <a href="/api/auth/signin" style={{
+        fontFamily: "'Cinzel', serif",
+        fontSize: '0.9rem',
+        fontWeight: 600,
+        background: 'var(--cr)',
+        color: 'var(--ml)',
+        padding: '0.875rem 2rem',
+        borderRadius: '8px',
+        textDecoration: 'none',
+        letterSpacing: '0.04em',
+        display: 'inline-block',
+        marginTop: '8px',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+      }}>
+        Entrar com Google
+      </a>
+
+      <a href="https://github.com/gabriell-franca/mesa-aberta" target="_blank" rel="noreferrer" style={{
+        ...bubble,
+        fontFamily: "'Lora', serif",
+        fontSize: '12px',
+        color: 'var(--sl)',
+        textDecoration: 'none',
+        fontStyle: 'italic',
+      }}>
+        ver no GitHub →
+      </a>
+
     </main>
   )
-}
+} 

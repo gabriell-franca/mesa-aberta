@@ -20,7 +20,7 @@ export default async function EncountersPage() {
     const encounters = await getEncounters()
 
     return (
-        <main style={{ minHeight: '100vh', padding: '3rem 2rem', maxWidth: '680px', margin: '0 auto' }}>
+        <main style={{ position: 'relative', zIndex: 1, minHeight: '100vh', padding: '3rem 2rem', maxWidth: '680px', margin: '0 auto' }}>
 
             <div style={{ marginBottom: '3rem' }}>
                 <div style={{ fontFamily: "'Lora', serif", fontSize: '11px', fontStyle: 'italic', color: 'var(--slm)', letterSpacing: '0.08em', marginBottom: '6px' }}>mesa aberta</div>

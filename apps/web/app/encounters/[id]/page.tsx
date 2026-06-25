@@ -23,7 +23,7 @@ export default async function EncounterPage({ params }: { params: Promise<{ id: 
 
     if (!encounter) {
         return (
-            <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <main style={{ position: 'relative', zIndex: 1, minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <p style={{ fontFamily: "'Lora', serif", color: 'var(--slm)', fontStyle: 'italic' }}>encontro não encontrado</p>
             </main>
         )
@@ -33,7 +33,7 @@ export default async function EncounterPage({ params }: { params: Promise<{ id: 
     const badge = statusBadge[encounter.status] ?? statusBadge.PLANNED
 
     return (
-        <main style={{ minHeight: '100vh', padding: '2.5rem 2rem', maxWidth: '680px', margin: '0 auto' }}>
+        <main style={{ position: 'relative', zIndex: 1, minHeight: '100vh', padding: '2.5rem 2rem', maxWidth: '680px', margin: '0 auto' }}>
 
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2rem', gap: '1rem' }}>
                 <div>
