@@ -2,20 +2,27 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-type Opacity = 'full' | 'soft' | 'hidden'
-
 export default function PixelBackground() {
     const canvasRef = useRef<HTMLCanvasElement>(null)
-    const [opacity, setOpacity] = useState<Opacity>('full')
+    const [mode, setMode] = useState<'splash' | 'soft' | 'fullscreen'>('soft')
+    const [showSplash, setShowSplash] = useState(false)
 
+    // Verifica se já mostrou o splash nessa sessão
     useEffect(() => {
-        const saved = localStorage.getItem('bg-opacity') as Opacity | null
-        if (saved) setOpacity(saved)
+        const seen = sessionStorage.getItem('splash-seen')
+        if (!seen) {
+            setShowSplash(true)
+            setMode('splash')
+            sessionStorage.setItem('splash-seen', 'true')
+
+            const timer = setTimeout(() => {
+                setMode('soft')
+                setTimeout(() => setShowSplash(false), 800) // espera o fade
+            }, 3000)
+
+            return () => clearTimeout(timer)
+        }
     }, [])
-
-    useEffect(() => {
-        localStorage.setItem('bg-opacity', opacity)
-    }, [opacity])
 
     useEffect(() => {
         const cv = canvasRef.current
@@ -23,14 +30,18 @@ export default function PixelBackground() {
         drawHero(cv)
     }, [])
 
-    const opacityValue = opacity === 'full' ? 1 : opacity === 'soft' ? 0.25 : 0
+    const opacityValue = mode === 'splash' || mode === 'fullscreen' ? 1 : 0.25
 
     return (
         <>
+            {/* Background fixo */}
             <div style={{
-                position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none',
-                opacity: opacityValue, transition: 'opacity 0.3s',
+                position: 'fixed', inset: 0, zIndex: mode === 'fullscreen' ? 200 : 0,
+                pointerEvents: 'none',
+                opacity: opacityValue,
+                transition: 'opacity 0.8s ease',
                 overflow: 'hidden',
+                background: 'var(--mb)',
             }}>
                 <canvas ref={canvasRef} width={280} height={158} style={{
                     width: '100%', height: '100%',
@@ -39,24 +50,30 @@ export default function PixelBackground() {
                 }} />
             </div>
 
-            <div style={{
-                position: 'fixed', bottom: '16px', left: '16px', zIndex: 100,
-                display: 'flex', gap: '4px', background: 'var(--ml)',
-                border: '1px solid var(--md)', borderRadius: '6px', padding: '3px',
-            }}>
-                {(['full', 'soft', 'hidden'] as Opacity[]).map(v => (
-                    <button key={v} onClick={() => setOpacity(v)} title={
-                        v === 'full' ? 'arte visível' : v === 'soft' ? 'arte suave' : 'arte oculta'
-                    } style={{
-                        fontFamily: "'Lora', serif", fontSize: '10px', padding: '4px 8px',
-                        borderRadius: '4px', border: 'none', cursor: 'pointer',
-                        background: opacity === v ? 'var(--sl)' : 'transparent',
-                        color: opacity === v ? 'var(--ml)' : 'var(--slm)',
-                    }}>
-                        {v === 'full' ? '◉' : v === 'soft' ? '◐' : '○'}
-                    </button>
-                ))}
-            </div>
+            {/* Botão "ver arte" — esconde durante splash */}
+            {!showSplash && (
+                <button
+                    onClick={() => setMode(mode === 'fullscreen' ? 'soft' : 'fullscreen')}
+                    style={{
+                        position: 'fixed',
+                        top: '20px',
+                        right: '20px',
+                        zIndex: 300,
+                        background: 'var(--mb)',
+                        color: 'var(--sl)',
+                        border: '1px solid var(--md)',
+                        padding: '8px 14px',
+                        borderRadius: '6px',
+                        fontFamily: "'Lora', serif",
+                        fontSize: '20px',
+                        fontStyle: 'italic',
+                        cursor: 'pointer',
+                        letterSpacing: '0.05em',
+                    }}
+                >
+                    {mode === 'fullscreen' ? '× fechar arte' : '✦ ver arte'}
+                </button>
+            )}
         </>
     )
 }
@@ -85,7 +102,7 @@ function drawHero(cv: HTMLCanvasElement) {
     const d20 = (cx: number, cy: number, r: number, c: string, thick: boolean) => { const P: number[][] = []; for (let i = 0; i < 6; i++) { const a = Math.PI / 2 + i * Math.PI / 3; P.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]) } const seg = (A: number[], B: number[]) => { line(A[0], A[1], B[0], B[1], c); if (thick) line(A[0] + 1, A[1], B[0] + 1, B[1], c) }; for (let i = 0; i < 6; i++) seg(P[i], P[(i + 1) % 6]); seg(P[0], P[2]); seg(P[2], P[4]); seg(P[4], P[0]); line(P[1][0], P[1][1], cx, cy, c); line(P[3][0], P[3][1], cx, cy, c); line(P[5][0], P[5][1], cx, cy, c) }
     const flower = (cx: number, cy: number, r: number, pc: string, cc: string) => { for (let i = 0; i < 5; i++) { const a = i * 2 * Math.PI / 5 - Math.PI / 2; fillEll(Math.round(cx + Math.cos(a) * r), Math.round(cy + Math.sin(a) * r), 2, 2, pc) } fillEll(cx, cy, 1, 1, cc) }
 
-    // sol (top-left)
+    // sol
     { const sx = 40, sy = 32; fillEll(sx, sy, 8, 8, RED); ringO(sx, sy, 11, INK); const rays = [[0, -1], [1, 0], [0, 1], [-1, 0], [1, -1], [1, 1], [-1, 1], [-1, -1]]; for (const [dx, dy] of rays) { const L = Math.abs(dx) + Math.abs(dy) > 1 ? 6 : 8; for (let t = 14; t < 14 + L; t++) { const k = (Math.abs(dx) && Math.abs(dy)) ? 0.7 : 1; px(sx + Math.round(dx * t * k), sy + Math.round(dy * t * k), INK) } } }
     // círculo mágico
     { const mcx = 236, mcy = 58; ringO(mcx, mcy, 16, INK); ringO(mcx, mcy, 11, RED); for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; px(mcx + Math.round(Math.cos(a) * 16), mcy + Math.round(Math.sin(a) * 16), RED) } star4(mcx, mcy, 3, INK) }
@@ -105,70 +122,55 @@ function drawHero(cv: HTMLCanvasElement) {
 
     // ROSTO
     const CL = 140, FCY = 80
-    // cabelo bob
     fillEll(CL, FCY - 10, 36, 40, INK)
     poly([[CL - 34, FCY - 2], [CL - 38, FCY + 18], [CL - 32, FCY + 42], [CL - 22, FCY + 48], [CL - 22, FCY + 28], [CL - 26, FCY + 8]], INK)
     poly([[CL + 34, FCY - 4], [CL + 38, FCY + 18], [CL + 32, FCY + 42], [CL + 22, FCY + 48], [CL + 22, FCY + 28], [CL + 26, FCY + 8]], INK)
-    // abre rosto
     clrEll(CL, FCY + 2, 26, 34)
     poly([[CL - 26, FCY + 22], [CL - 12, FCY + 38], [CL - 26, FCY + 38]], INK)
     poly([[CL + 26, FCY + 22], [CL + 12, FCY + 38], [CL + 26, FCY + 38]], INK)
     poly([[CL - 10, FCY + 34], [CL, FCY + 38], [CL + 10, FCY + 34], [CL, FCY + 36]], INK)
     clr(CL - 2, FCY + 34, 4, 2)
-    // pescoço
     clr(CL - 9, FCY + 34, 18, 22)
     poly([[58, 158], [58, FCY + 78], [CL - 22, FCY + 58], [CL - 9, FCY + 52], [CL + 9, FCY + 52], [CL + 22, FCY + 58], [222, FCY + 78], [222, 158]], INK)
     clr(CL - 8, FCY + 34, 16, 18)
     poly([[CL - 8, FCY + 50], [CL + 8, FCY + 50], [CL + 13, FCY + 57], [CL - 13, FCY + 57]], INK)
     line(CL - 7, FCY + 45, CL - 6, FCY + 52, INK); line(CL + 7, FCY + 45, CL + 6, FCY + 52, INK)
     px(CL, FCY + 54, RED)
-    // franja
     poly([[CL - 28, FCY - 32], [CL - 16, FCY - 36], [CL - 2, FCY - 34], [CL + 14, FCY - 32], [CL + 24, FCY - 26], [CL + 26, FCY - 14], [CL + 22, FCY - 8], [CL + 14, FCY - 12], [CL + 6, FCY - 8], [CL - 4, FCY - 12], [CL - 14, FCY - 8], [CL - 22, FCY - 12], [CL - 28, FCY - 18]], INK)
     poly([[CL + 8, FCY - 30], [CL + 16, FCY - 28], [CL + 20, FCY - 22], [CL + 14, FCY - 20], [CL + 10, FCY - 24]], INK)
     poly([[CL + 24, FCY - 10], [CL + 30, FCY + 6], [CL + 28, FCY + 26], [CL + 22, FCY + 22], [CL + 22, FCY + 4]], INK)
     poly([[CL - 24, FCY - 10], [CL - 30, FCY + 6], [CL - 28, FCY + 26], [CL - 22, FCY + 22], [CL - 22, FCY + 4]], INK)
-    // brilhos cabelo
     polyline([[CL - 30, FCY - 22], [CL - 18, FCY - 32], [CL, FCY - 38], [CL + 18, FCY - 32], [CL + 30, FCY - 20]], RED)
     line(CL - 22, FCY - 18, CL - 6, FCY - 16, RED); line(CL + 10, FCY - 16, CL + 20, FCY - 12, RED)
     line(CL + 28, FCY + 0, CL + 27, FCY + 22, RED); line(CL - 28, FCY + 0, CL - 27, FCY + 22, RED)
     line(CL - 36, FCY + 22, CL - 32, FCY + 42, RED); line(CL + 36, FCY + 22, CL + 32, FCY + 42, RED)
     clr(CL - 4, FCY - 34, 3, 2); clr(CL + 10, FCY - 32, 2, 1); clr(CL - 14, FCY - 28, 2, 1)
     clr(CL + 22, FCY + 2, 2, 2); clr(CL - 34, FCY + 12, 1, 2)
-    // orelha
     poly([[CL + 22, FCY + 6], [CL + 28, FCY + 8], [CL + 27, FCY + 16], [CL + 22, FCY + 15]], INK)
     px(CL + 24, FCY + 10, RED); px(CL + 24, FCY + 12, RED); px(CL + 25, FCY + 18, RED); px(CL + 25, FCY + 19, RED)
-    // sombra lateral
     px(CL + 20, FCY + 8, RED); px(CL + 21, FCY + 12, RED); px(CL + 20, FCY + 16, RED); px(CL + 21, FCY + 20, RED)
-    // sobrancelhas
     line(CL + 6, FCY - 6, CL + 12, FCY - 8, INK); line(CL + 12, FCY - 8, CL + 18, FCY - 7, INK); px(CL + 18, FCY - 6, INK)
     line(CL - 18, FCY - 7, CL - 12, FCY - 8, INK); line(CL - 12, FCY - 8, CL - 6, FCY - 6, INK); px(CL - 18, FCY - 6, INK)
-    // olho direito
     rect(CL + 5, FCY + 2, 14, 2, INK); px(CL + 4, FCY + 3, INK); px(CL + 19, FCY + 2, INK); px(CL + 20, FCY + 3, INK); px(CL + 20, FCY + 4, INK); px(CL + 21, FCY + 4, INK)
     clr(CL + 6, FCY + 4, 13, 7); rect(CL + 9, FCY + 4, 7, 7, RED); rect(CL + 11, FCY + 6, 3, 4, INK)
     clr(CL + 10, FCY + 5, 2, 2); px(CL + 14, FCY + 9, PAPER)
     px(CL + 7, FCY + 11, INK); px(CL + 11, FCY + 11, INK); px(CL + 15, FCY + 11, INK); px(CL + 18, FCY + 11, INK)
     px(CL + 8, FCY + 13, RED); px(CL + 16, FCY + 13, RED)
-    // olho esquerdo
     rect(CL - 18, FCY + 2, 14, 2, INK); px(CL - 19, FCY + 3, INK); px(CL - 4, FCY + 2, INK); px(CL - 3, FCY + 3, INK); px(CL - 20, FCY + 4, INK); px(CL - 21, FCY + 4, INK)
     clr(CL - 18, FCY + 4, 13, 7); rect(CL - 15, FCY + 4, 7, 7, RED); rect(CL - 13, FCY + 6, 3, 4, INK)
     clr(CL - 11, FCY + 5, 2, 2); px(CL - 13, FCY + 9, PAPER)
     px(CL - 7, FCY + 11, INK); px(CL - 11, FCY + 11, INK); px(CL - 15, FCY + 11, INK); px(CL - 18, FCY + 11, INK)
     px(CL - 8, FCY + 13, RED); px(CL - 16, FCY + 13, RED)
-    // nariz
     px(CL, FCY + 17, RED); px(CL + 1, FCY + 19, RED); px(CL - 1, FCY + 19, RED)
-    // boca
     px(CL - 1, FCY + 26, INK); px(CL + 1, FCY + 26, INK)
     line(CL - 4, FCY + 27, CL + 4, FCY + 27, INK)
     px(CL - 5, FCY + 27, INK); px(CL + 5, FCY + 27, INK); px(CL - 5, FCY + 28, INK); px(CL + 5, FCY + 28, INK)
     rect(CL - 4, FCY + 28, 9, 2, RED); px(CL + 1, FCY + 28, PAPER)
-    // blush
     for (const [bx, by] of [[CL + 14, FCY + 15], [CL + 16, FCY + 16], [CL + 18, FCY + 15], [CL + 15, FCY + 17]]) px(bx, by, RED)
     for (const [bx, by] of [[CL - 14, FCY + 15], [CL - 16, FCY + 16], [CL - 18, FCY + 15], [CL - 15, FCY + 17]]) px(bx, by, RED)
-    // flores no cabelo
     flower(CL - 26, FCY - 22, 4, RED, INK); flower(CL - 22, FCY - 10, 3, RED, INK)
     line(CL - 24, FCY - 18, CL - 21, FCY - 12, INK)
 
-    // grão
     for (let i = 0; i < 260; i++) {
         const x = Math.floor(rng() * W), y = Math.floor(rng() * H)
         if (rng() < 0.55) continue
