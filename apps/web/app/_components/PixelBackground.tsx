@@ -1,10 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { usePathname } from 'next/navigation'
 
 export default function PixelBackground() {
     const canvasRef = useRef<HTMLCanvasElement>(null)
-    const [mode, setMode] = useState<'splash' | 'soft' | 'fullscreen'>('soft')
+    const pathname = usePathname()
+    const isHome = pathname === '/'
+    const [mode, setMode] = useState<'splash' | 'soft' | 'hidden' | 'fullscreen'>(isHome ? 'soft' : 'hidden')
     const [showSplash, setShowSplash] = useState(false)
 
     // Verifica se já mostrou o splash nessa sessão
@@ -53,25 +56,34 @@ export default function PixelBackground() {
             {/* Botão "ver arte" — esconde durante splash */}
             {!showSplash && (
                 <button
-                    onClick={() => setMode(mode === 'fullscreen' ? 'soft' : 'fullscreen')}
+                    onClick={() => setMode(mode === 'fullscreen' ? (isHome ? 'soft' : 'hidden') : 'fullscreen')}
+                    title={mode === 'fullscreen' ? 'fechar arte' : 'ver arte'}
                     style={{
                         position: 'fixed',
                         top: '20px',
                         right: '20px',
                         zIndex: 300,
-                        background: 'var(--mb)',
-                        color: 'var(--sl)',
-                        border: '1px solid var(--md)',
-                        padding: '8px 14px',
-                        borderRadius: '6px',
-                        fontFamily: "'Lora', serif",
-                        fontSize: '20px',
-                        fontStyle: 'italic',
+                        background: 'var(--sl)',
+                        border: 'none',
+                        borderRadius: '999px',
+                        padding: '6px',
+                        width: '52px',
+                        height: '28px',
                         cursor: 'pointer',
-                        letterSpacing: '0.05em',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: mode === 'fullscreen' ? 'flex-end' : 'flex-start',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                     }}
                 >
-                    {mode === 'fullscreen' ? '× fechar arte' : '✦ ver arte'}
+                    <div style={{
+                        width: '18px',
+                        height: '18px',
+                        borderRadius: '50%',
+                        background: mode === 'fullscreen' ? 'var(--cr)' : 'var(--mb)',
+                        transition: 'background 0.3s ease',
+                    }} />
                 </button>
             )}
         </>

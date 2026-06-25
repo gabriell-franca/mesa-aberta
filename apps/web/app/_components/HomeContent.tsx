@@ -19,7 +19,7 @@ export default function HomeContent() {
     return (
         <div style={{
             opacity: show ? 1 : 0,
-            transition: 'opacity 2.0s ease',
+            transition: 'opacity 1.0s ease',
             pointerEvents: show ? 'auto' : 'none',
             maxWidth: '460px',
             width: '100%',
