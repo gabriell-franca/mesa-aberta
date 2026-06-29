@@ -29,6 +29,11 @@ export default function CombatantCard({ c, isActive }: { c: Combatant; isActive:
         try { return c.notes ? JSON.parse(c.notes) : [] }
         catch { return [] }
     })
+    const [showEdit, setShowEdit] = useState(false)
+    const [editName, setEditName] = useState(c.name)
+    const [editInit, setEditInit] = useState(String(c.initiative))
+    const [editAc, setEditAc] = useState(String(c.ac))
+    const [editHpMax, setEditHpMax] = useState(String(c.hpMax))
     const router = useRouter()
 
     const hpPercent = Math.max(0, Math.round((c.hpCurrent / c.hpMax) * 100))
@@ -55,6 +60,20 @@ export default function CombatantCard({ c, isActive }: { c: Combatant; isActive:
         await fetch(`${API_URL}/encounters/${c.encounterId}/combatants/${c.id}`, {
             method: 'DELETE',
         })
+        router.refresh()
+    }
+    async function saveEdit() {
+        await fetch(`${API_URL}/encounters/${c.encounterId}/combatants/${c.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: editName,
+                initiative: parseInt(editInit) || 0,
+                ac: parseInt(editAc) || 0,
+                hpMax: parseInt(editHpMax) || 1,
+            }),
+        })
+        setShowEdit(false)
         router.refresh()
     }
 
@@ -143,9 +162,29 @@ export default function CombatantCard({ c, isActive }: { c: Combatant; isActive:
                             {c.isPlayer ? 'jogador' : 'monstro'}
                         </span>
                         <span style={{ marginLeft: 'auto', fontFamily: "'Lora', serif", fontSize: '12px', color: 'var(--sl)' }}>CA {c.ac}</span>
+                        <button onClick={() => setShowEdit(!showEdit)} title="editar combatente" style={{ fontFamily: "'Lora', serif", fontSize: '11px', padding: '2px 8px', borderRadius: '4px', background: 'transparent', color: 'var(--slm)', border: '1px solid var(--md)', cursor: 'pointer' }}>editar</button>
+                        <button onClick={() => setShowEdit(true)} title="editar" style={{ fontFamily: "'Lora', serif", fontSize: '11px', padding: '2px 8px', borderRadius: '4px', background: 'transparent', color: 'var(--slm)', border: '1px solid var(--md)', cursor: 'pointer' }}>editar</button>
                         <button onClick={removeCombatant} title="remover do encontro" style={{ fontFamily: "'Lora', serif", fontSize: '11px', padding: '2px 8px', borderRadius: '4px', background: 'transparent', color: 'var(--slm)', border: '1px solid var(--md)', cursor: 'pointer' }}>remover</button>
                     </div>
-
+                    {showEdit && (
+                        <div style={{ background: 'var(--mb)', border: '1px solid var(--md)', borderRadius: '8px', padding: '12px', marginBottom: '14px' }}>
+                            <div style={{ fontFamily: "'Lora', serif", fontSize: '10px', fontStyle: 'italic', color: 'var(--slm)', marginBottom: '8px' }}>editar combatente</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 70px 70px 70px', gap: '6px', marginBottom: '8px' }}>
+                                <input value={editName} onChange={e => setEditName(e.target.value)} placeholder="nome"
+                                    style={{ fontFamily: "'Lora', serif", fontSize: '12px', background: 'transparent', border: '1px solid var(--md)', borderRadius: '6px', padding: '6px 8px', color: 'var(--ink)', outline: 'none' }} />
+                                <input type="number" value={editInit} onChange={e => setEditInit(e.target.value)} placeholder="init"
+                                    style={{ fontFamily: "'Lora', serif", fontSize: '12px', background: 'transparent', border: '1px solid var(--md)', borderRadius: '6px', padding: '6px 8px', color: 'var(--ink)', outline: 'none' }} />
+                                <input type="number" value={editAc} onChange={e => setEditAc(e.target.value)} placeholder="CA"
+                                    style={{ fontFamily: "'Lora', serif", fontSize: '12px', background: 'transparent', border: '1px solid var(--md)', borderRadius: '6px', padding: '6px 8px', color: 'var(--ink)', outline: 'none' }} />
+                                <input type="number" value={editHpMax} onChange={e => setEditHpMax(e.target.value)} placeholder="HP"
+                                    style={{ fontFamily: "'Lora', serif", fontSize: '12px', background: 'transparent', border: '1px solid var(--md)', borderRadius: '6px', padding: '6px 8px', color: 'var(--ink)', outline: 'none' }} />
+                            </div>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                                <button onClick={saveEdit} style={{ fontFamily: "'Lora', serif", fontSize: '12px', padding: '5px 16px', borderRadius: '6px', background: 'var(--sl)', color: 'var(--ml)', border: 'none', cursor: 'pointer' }}>salvar</button>
+                                <button onClick={() => setShowEdit(false)} style={{ fontFamily: "'Lora', serif", fontSize: '12px', padding: '5px 12px', borderRadius: '6px', background: 'transparent', color: 'var(--sl)', border: '1px solid var(--md)', cursor: 'pointer' }}>cancelar</button>
+                            </div>
+                        </div>
+                    )}
                     {/* HP */}
                     <div style={{ marginBottom: '14px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '7px' }}>

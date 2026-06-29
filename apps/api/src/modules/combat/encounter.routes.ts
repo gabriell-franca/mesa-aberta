@@ -2,37 +2,57 @@ import { FastifyInstance } from 'fastify'
 import prisma from '../../lib/prisma'
 export async function encounterRoutes(app: FastifyInstance) {
 
+    async function getOrCreateUser(email: string) {
+        let user = await prisma.user.findUnique({ where: { email } })
+        if (!user) {
+            user = await prisma.user.create({ data: { email } })
+        }
+        return user
+    }
+
+    function getEmail(request: any): string | null {
+        const email = request.headers['x-user-email']
+        return typeof email === 'string' ? email : null
+    }
+
     app.post('/encounters', async (request, reply) => {
+        const email = getEmail(request)
+        if (!email) return reply.status(401).send({ error: 'Não autenticado' })
+
         const { name, description } = request.body as { name: string, description?: string }
+        const user = await getOrCreateUser(email)
 
         const encounter = await prisma.encounter.create({
-            data: {
-                name,
-                description,
-            },
+            data: { name, description, userId: user.id },
         })
 
         return reply.status(201).send(encounter)
     })
 
     app.get('/encounters/:id', async (request, reply) => {
-        const { id } = request.params as { id: string }
+        const email = getEmail(request)
+        if (!email) return reply.status(401).send({ error: 'Não autenticado' })
 
-        const encounter = await prisma.encounter.findUnique({
-            where: { id },
+        const { id } = request.params as { id: string }
+        const user = await getOrCreateUser(email)
+
+        const encounter = await prisma.encounter.findFirst({
+            where: { id, userId: user.id },
             include: { combatants: true },
         })
 
-        if (!encounter) {
-            return reply.status(404).send({ error: 'Encontro não encontrado' })
-        }
-
+        if (!encounter) return reply.status(404).send({ error: 'Encontro não encontrado' })
         return encounter
     })
 
     // Listar todos os encontros
-    app.get('/encounters/list', async () => {
+    app.get('/encounters/list', async (request, reply) => {
+        const email = getEmail(request)
+        if (!email) return reply.status(401).send({ error: 'Não autenticado' })
+
+        const user = await getOrCreateUser(email)
         const encounters = await prisma.encounter.findMany({
+            where: { userId: user.id },
             orderBy: { createdAt: 'desc' },
         })
         return encounters
@@ -163,6 +183,34 @@ export async function encounterRoutes(app: FastifyInstance) {
         const { id } = request.params as { id: string }
         await prisma.encounter.delete({ where: { id } })
         return reply.status(204).send()
+    })
+
+    // Editar combatente (nome, iniciativa, AC, HP máximo)
+    app.patch('/encounters/:id/combatants/:combatantId', async (request, reply) => {
+        const { combatantId } = request.params as { id: string; combatantId: string }
+        const { name, initiative, ac, hpMax } = request.body as {
+            name?: string
+            initiative?: number
+            ac?: number
+            hpMax?: number
+        }
+
+        const combatant = await prisma.combatant.findUnique({ where: { id: combatantId } })
+        if (!combatant) return reply.status(404).send({ error: 'Combatente não encontrado' })
+
+        const updated = await prisma.combatant.update({
+            where: { id: combatantId },
+            data: {
+                name: name ?? combatant.name,
+                initiative: initiative ?? combatant.initiative,
+                ac: ac ?? combatant.ac,
+                hpMax: hpMax ?? combatant.hpMax,
+                // Se aumentar HP máximo, mantém o atual; se diminuir, garante que não passa
+                hpCurrent: hpMax !== undefined ? Math.min(combatant.hpCurrent, hpMax) : combatant.hpCurrent,
+            },
+        })
+
+        return updated
     })
 
     // Passar para o próximo turno
