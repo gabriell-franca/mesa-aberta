@@ -2,15 +2,15 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { API_URL } from '../../../../lib/api'
+import { API_URL, authHeaders } from '../../../../lib/api'
 
-export default function TrackerActions({ encounterId, status }: { encounterId: string; status: string }) {
+export default function TrackerActions({ encounterId, status, userEmail }: { encounterId: string; status: string; userEmail: string }) {
     const [loading, setLoading] = useState(false)
     const router = useRouter()
 
     async function call(endpoint: string) {
         setLoading(true)
-        await fetch(`${API_URL}/encounters/${encounterId}/${endpoint}`, { method: 'POST' })
+        await fetch(`${API_URL}/encounters/${encounterId}/${endpoint}`, { method: 'POST', headers: authHeaders(userEmail) })
         setLoading(false)
         router.refresh()
     }

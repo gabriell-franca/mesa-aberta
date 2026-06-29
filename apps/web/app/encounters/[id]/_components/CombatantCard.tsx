@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { API_URL } from '../../../../lib/api'
+import { API_URL, authHeaders } from '../../../../lib/api'
 
 const CONDITIONS_5E = [
     'amedrontado', 'atordoado', 'caído', 'cego', 'encantado',
@@ -17,7 +17,7 @@ type Combatant = {
     notes?: string | null
 }
 
-export default function CombatantCard({ c, isActive }: { c: Combatant; isActive: boolean }) {
+export default function CombatantCard({ c, isActive, userEmail }: { c: Combatant; isActive: boolean; userEmail: string }) {
     const [action, setAction] = useState<'dano' | 'cura' | null>(null)
     const [valor, setValor] = useState('')
     const [loading, setLoading] = useState(false)
@@ -46,7 +46,7 @@ export default function CombatantCard({ c, isActive }: { c: Combatant; isActive:
         setLoading(true)
         await fetch(`${API_URL}/encounters/${c.encounterId}/combatants/${c.id}/hp`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders(userEmail) },
             body: JSON.stringify({ valor: num, tipo: action }),
         })
         setLoading(false)
@@ -59,13 +59,14 @@ export default function CombatantCard({ c, isActive }: { c: Combatant; isActive:
         if (!confirm(`Remover ${c.name} do encontro?`)) return
         await fetch(`${API_URL}/encounters/${c.encounterId}/combatants/${c.id}`, {
             method: 'DELETE',
+            headers: authHeaders(userEmail),
         })
         router.refresh()
     }
     async function saveEdit() {
         await fetch(`${API_URL}/encounters/${c.encounterId}/combatants/${c.id}`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders(userEmail) },
             body: JSON.stringify({
                 name: editName,
                 initiative: parseInt(editInit) || 0,
@@ -81,7 +82,7 @@ export default function CombatantCard({ c, isActive }: { c: Combatant; isActive:
     async function saveResources(updated: string[]) {
         await fetch(`${API_URL}/encounters/${c.encounterId}/combatants/${c.id}/notes`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders(userEmail) },
             body: JSON.stringify({ notes: JSON.stringify(updated) }),
         })
     }
@@ -92,7 +93,7 @@ export default function CombatantCard({ c, isActive }: { c: Combatant; isActive:
             : [...c.conditions, cond]
         await fetch(`${API_URL}/encounters/${c.encounterId}/combatants/${c.id}/status`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders(userEmail) },
             body: JSON.stringify({ conditions: updated }),
         })
         router.refresh()

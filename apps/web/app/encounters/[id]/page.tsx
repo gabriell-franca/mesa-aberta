@@ -1,11 +1,16 @@
-import { API_URL } from '../../../lib/api'
+import { auth } from '../../../auth'
+import { redirect } from 'next/navigation'
+import { API_URL, authHeaders } from '../../../lib/api'
 import TrackerActions from './_components/TrackerActions'
 import CombatantCard from './_components/CombatantCard'
 import AddCombatantForm from './_components/AddCombatantForm'
 
-async function getEncounter(id: string) {
+async function getEncounter(id: string, email: string) {
     try {
-        const res = await fetch(`${API_URL}/encounters/${id}`, { cache: 'no-store' })
+        const res = await fetch(`${API_URL}/encounters/${id}`, {
+            cache: 'no-store',
+            headers: authHeaders(email),
+        })
         if (!res.ok) return null
         return res.json()
     } catch { return null }
@@ -18,8 +23,11 @@ const statusBadge: Record<string, { label: string; color: string }> = {
 }
 
 export default async function EncounterPage({ params }: { params: Promise<{ id: string }> }) {
+    const session = await auth()
+    if (!session?.user?.email) redirect('/')
+    const email = session.user.email
     const { id } = await params
-    const encounter = await getEncounter(id)
+    const encounter = await getEncounter(id, email)
 
     if (!encounter) {
         return (
@@ -60,7 +68,7 @@ export default async function EncounterPage({ params }: { params: Promise<{ id: 
                     )}
                 </div>
 
-                <TrackerActions encounterId={encounter.id} status={encounter.status} />
+                <TrackerActions encounterId={encounter.id} status={encounter.status} userEmail={email} />
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '1rem' }}>
                     {ordenados.length === 0 ? (
@@ -71,12 +79,12 @@ export default async function EncounterPage({ params }: { params: Promise<{ id: 
                         </div>
                     ) : (
                         ordenados.map((c: { id: string; encounterId: string; name: string; initiative: number; hpCurrent: number; hpMax: number; ac: number; exhaustionLevel: number; conditions: string[]; isPlayer: boolean }) => (
-                            <CombatantCard key={c.id} c={c} isActive={c.id === encounter.activeCombatantId} />
+                            <CombatantCard key={c.id} c={c} isActive={c.id === encounter.activeCombatantId} userEmail={email} />
                         ))
                     )}
                 </div>
 
-                <AddCombatantForm encounterId={encounter.id} />
+                <AddCombatantForm encounterId={encounter.id} userEmail={email} />
             </div>
         </main>
     )

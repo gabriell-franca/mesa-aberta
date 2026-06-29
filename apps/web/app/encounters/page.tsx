@@ -1,10 +1,15 @@
-import { API_URL } from '../../lib/api'
+import { auth } from '../../auth'
+import { redirect } from 'next/navigation'
+import { API_URL, authHeaders } from '../../lib/api'
 import NewEncounterButton from './_components/NewEncounterButton'
 import DeleteEncounterButton from '././_components/DeleteEncounterButton'
 
-async function getEncounters() {
+async function getEncounters(email: string) {
     try {
-        const res = await fetch(`${API_URL}/encounters/list`, { cache: 'no-store' })
+        const res = await fetch(`${API_URL}/encounters/list`, {
+            cache: 'no-store',
+            headers: authHeaders(email),
+        })
         if (!res.ok) return []
         return res.json()
     } catch { return [] }
@@ -17,7 +22,10 @@ const statusLabel: Record<string, { label: string; color: string }> = {
 }
 
 export default async function EncountersPage() {
-    const encounters = await getEncounters()
+    const session = await auth()
+    if (!session?.user?.email) redirect('/')
+    const email = session.user.email
+    const encounters = await getEncounters(email)
 
     return (
         <main style={{ position: 'relative', zIndex: 1, minHeight: '100vh', padding: '3rem 2rem', maxWidth: '680px', margin: '0 auto' }}>
@@ -54,14 +62,14 @@ export default async function EncountersPage() {
                                         <div style={{ width: '7px', height: '7px', borderRadius: '50%', background: s.color }} />
                                         <span style={{ fontFamily: "'Lora', serif", fontSize: '11px', color: s.color }}>{s.label}</span>
                                     </div>
-                                    <DeleteEncounterButton id={e.id} name={e.name} />
+                                    <DeleteEncounterButton id={e.id} name={e.name} userEmail={email} />
                                 </div>
                             </a>
                         )
                     })}
                 </div>
 
-                <NewEncounterButton />
+                <NewEncounterButton userEmail={email} />
 
                 <div style={{ marginTop: '3rem', paddingTop: '1.5rem', borderTop: '1px solid var(--md)', textAlign: 'center' }}>
                     <a href="/" style={{ fontFamily: "'Lora', serif", fontSize: '12px', color: 'var(--slm)', textDecoration: 'none', fontStyle: 'italic' }}>← voltar ao início</a>

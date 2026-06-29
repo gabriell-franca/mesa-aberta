@@ -1,10 +1,10 @@
 'use client'
-import { API_URL } from '../../../lib/api'
+import { API_URL, authHeaders } from '../../../lib/api'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 
-export default function NewEncounterButton() {
+export default function NewEncounterButton({ userEmail }: { userEmail: string }) {
     const [loading, setLoading] = useState(false)
     const [name, setName] = useState('')
     const [showForm, setShowForm] = useState(false)
@@ -18,7 +18,7 @@ export default function NewEncounterButton() {
 
         const res = await fetch(`${API_URL}/encounters`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders(userEmail) },
             body: JSON.stringify({ name }),
         })
 

@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { API_URL } from '../../../../lib/api'
+import { API_URL, authHeaders } from '../../../../lib/api'
 
-export default function AddCombatantForm({ encounterId }: { encounterId: string }) {
+export default function AddCombatantForm({ encounterId, userEmail }: { encounterId: string; userEmail: string }) {
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [form, setForm] = useState({ name: '', initiative: '', hpMax: '', ac: '', isPlayer: false })
@@ -15,7 +15,7 @@ export default function AddCombatantForm({ encounterId }: { encounterId: string 
         setLoading(true)
         await fetch(`${API_URL}/encounters/${encounterId}/combatants`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders(userEmail) },
             body: JSON.stringify({
                 name: form.name,
                 initiative: Number(form.initiative),

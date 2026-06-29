@@ -15,6 +15,18 @@ export async function encounterRoutes(app: FastifyInstance) {
         return typeof email === 'string' ? email : null
     }
 
+    async function requireUser(request: any, reply: any) {
+        const email = getEmail(request)
+        if (!email) { reply.status(401).send({ error: 'Não autenticado' }); return null }
+        return getOrCreateUser(email)
+    }
+
+    async function requireEncounter(encounterId: string, userId: string, reply: any) {
+        const encounter = await prisma.encounter.findFirst({ where: { id: encounterId, userId } })
+        if (!encounter) { reply.status(404).send({ error: 'Encontro não encontrado' }); return null }
+        return encounter
+    }
+
     app.post('/encounters', async (request, reply) => {
         const email = getEmail(request)
         if (!email) return reply.status(401).send({ error: 'Não autenticado' })
@@ -60,6 +72,9 @@ export async function encounterRoutes(app: FastifyInstance) {
 
     // Adicionar combatente ao encontro
     app.post('/encounters/:id/combatants', async (request, reply) => {
+        const user = await requireUser(request, reply)
+        if (!user) return
+
         const { id } = request.params as { id: string }
         const { name, initiative, hpMax, ac, isPlayer } = request.body as {
             name: string
@@ -69,14 +84,8 @@ export async function encounterRoutes(app: FastifyInstance) {
             isPlayer?: boolean
         }
 
-        // Verifica se o encontro existe
-        const encounter = await prisma.encounter.findUnique({
-            where: { id },
-        })
-
-        if (!encounter) {
-            return reply.status(404).send({ error: 'Encontro não encontrado' })
-        }
+        const encounter = await requireEncounter(id, user.id, reply)
+        if (!encounter) return
 
         const combatant = await prisma.combatant.create({
             data: {
@@ -97,17 +106,23 @@ export async function encounterRoutes(app: FastifyInstance) {
 
     // Remover combatente do encontro
     app.delete('/encounters/:id/combatants/:combatantId', async (request, reply) => {
-        const { combatantId } = request.params as { id: string; combatantId: string }
+        const user = await requireUser(request, reply)
+        if (!user) return
+        const { id, combatantId } = request.params as { id: string; combatantId: string }
+        const encounter = await requireEncounter(id, user.id, reply)
+        if (!encounter) return
         await prisma.combatant.delete({ where: { id: combatantId } })
         return reply.status(204).send()
     })
 
     // Iniciar o combate
     app.post('/encounters/:id/start', async (request, reply) => {
+        const user = await requireUser(request, reply)
+        if (!user) return
         const { id } = request.params as { id: string }
 
-        const encounter = await prisma.encounter.findUnique({
-            where: { id },
+        const encounter = await prisma.encounter.findFirst({
+            where: { id, userId: user.id },
             include: { combatants: true },
         })
 
@@ -145,7 +160,11 @@ export async function encounterRoutes(app: FastifyInstance) {
 
     // Salvar recursos/notas do combatente
     app.patch('/encounters/:id/combatants/:combatantId/notes', async (request, reply) => {
-        const { combatantId } = request.params as { id: string; combatantId: string }
+        const user = await requireUser(request, reply)
+        if (!user) return
+        const { id, combatantId } = request.params as { id: string; combatantId: string }
+        const encounter = await requireEncounter(id, user.id, reply)
+        if (!encounter) return
         const { notes } = request.body as { notes: string }
         const updated = await prisma.combatant.update({
             where: { id: combatantId },
@@ -157,7 +176,11 @@ export async function encounterRoutes(app: FastifyInstance) {
 
     // Pausar combate (ACTIVE → IDLE, mantém tudo)
     app.post('/encounters/:id/pause', async (request, reply) => {
+        const user = await requireUser(request, reply)
+        if (!user) return
         const { id } = request.params as { id: string }
+        const enc = await requireEncounter(id, user.id, reply)
+        if (!enc) return
         const updated = await prisma.encounter.update({
             where: { id },
             data: { status: 'IDLE' },
@@ -168,7 +191,11 @@ export async function encounterRoutes(app: FastifyInstance) {
 
     // Reiniciar rodadas (zera rodadas, mantém combatentes)
     app.post('/encounters/:id/restart', async (request, reply) => {
+        const user = await requireUser(request, reply)
+        if (!user) return
         const { id } = request.params as { id: string }
+        const enc = await requireEncounter(id, user.id, reply)
+        if (!enc) return
         const updated = await prisma.encounter.update({
             where: { id },
             data: { status: 'IDLE', round: 0, activeCombatantId: null },
@@ -180,14 +207,22 @@ export async function encounterRoutes(app: FastifyInstance) {
 
     // Deletar encontro
     app.delete('/encounters/:id', async (request, reply) => {
+        const user = await requireUser(request, reply)
+        if (!user) return
         const { id } = request.params as { id: string }
+        const enc = await requireEncounter(id, user.id, reply)
+        if (!enc) return
         await prisma.encounter.delete({ where: { id } })
         return reply.status(204).send()
     })
 
     // Editar combatente (nome, iniciativa, AC, HP máximo)
     app.patch('/encounters/:id/combatants/:combatantId', async (request, reply) => {
-        const { combatantId } = request.params as { id: string; combatantId: string }
+        const user = await requireUser(request, reply)
+        if (!user) return
+        const { id, combatantId } = request.params as { id: string; combatantId: string }
+        const encounter = await requireEncounter(id, user.id, reply)
+        if (!encounter) return
         const { name, initiative, ac, hpMax } = request.body as {
             name?: string
             initiative?: number
@@ -215,10 +250,12 @@ export async function encounterRoutes(app: FastifyInstance) {
 
     // Passar para o próximo turno
     app.post('/encounters/:id/next-turn', async (request, reply) => {
+        const user = await requireUser(request, reply)
+        if (!user) return
         const { id } = request.params as { id: string }
 
-        const encounter = await prisma.encounter.findUnique({
-            where: { id },
+        const encounter = await prisma.encounter.findFirst({
+            where: { id, userId: user.id },
             include: { combatants: true },
         })
 
@@ -260,7 +297,11 @@ export async function encounterRoutes(app: FastifyInstance) {
 
     // Aplicar dano ou cura num combatente
     app.patch('/encounters/:id/combatants/:combatantId/hp', async (request, reply) => {
-        const { combatantId } = request.params as { id: string; combatantId: string }
+        const user = await requireUser(request, reply)
+        if (!user) return
+        const { id, combatantId } = request.params as { id: string; combatantId: string }
+        const encounter = await requireEncounter(id, user.id, reply)
+        if (!encounter) return
         const { valor, tipo } = request.body as {
             valor: number
             tipo: 'dano' | 'cura' | 'temp'
@@ -315,7 +356,11 @@ export async function encounterRoutes(app: FastifyInstance) {
 
     // Atualizar exaustão e condições de um combatente
     app.patch('/encounters/:id/combatants/:combatantId/status', async (request, reply) => {
-        const { combatantId } = request.params as { id: string; combatantId: string }
+        const user = await requireUser(request, reply)
+        if (!user) return
+        const { id, combatantId } = request.params as { id: string; combatantId: string }
+        const encounter = await requireEncounter(id, user.id, reply)
+        if (!encounter) return
         const { exhaustionLevel, conditions } = request.body as {
             exhaustionLevel?: number
             conditions?: string[]
@@ -347,10 +392,12 @@ export async function encounterRoutes(app: FastifyInstance) {
 
     // Encerrar o combate
     app.post('/encounters/:id/end', async (request, reply) => {
+        const user = await requireUser(request, reply)
+        if (!user) return
         const { id } = request.params as { id: string }
 
-        const encounter = await prisma.encounter.findUnique({
-            where: { id },
+        const encounter = await prisma.encounter.findFirst({
+            where: { id, userId: user.id },
         })
 
         if (!encounter) {
