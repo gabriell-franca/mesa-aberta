@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Lora:ital,wght@0,400;0,500;1,400&family=Orbitron:wght@400;600;700&family=Share+Tech+Mono&display=swap');
 
 @import "tailwindcss";
 
@@ -11,42 +11,79 @@
   --slm: #8b919e;
   --cr: #921821;
   --crd: #6b1118;
+  --card-shadow: 0 8px 32px rgba(0,0,0,0.12);
 }
 
 [data-theme="cyber"] {
   --mb: #06060f; --ml: #0c0a1e; --md: #1e1a40;
-  --ink: #e4e0ff; --sl: #a040ff; --slm: #4e2290;
-  --cr: #39ff14; --crd: #22cc0a;
+  --ink: #e4e0ff; --sl: #a040ff; --slm: #6a4aaa;
+  --cr: #00e5ff; --crd: #00b8cc;
+  --card-shadow: 0 0 0 1px rgba(160,64,255,0.35), 0 0 30px rgba(160,64,255,0.15), 0 0 60px rgba(0,229,255,0.06);
+}
+
+/* Fontes cyber — !important necessário para sobrescrever fontFamily inline nos componentes */
+[data-theme="cyber"] h1,
+[data-theme="cyber"] h2,
+[data-theme="cyber"] h3 {
+  font-family: 'Orbitron', sans-serif !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+[data-theme="cyber"] body,
+[data-theme="cyber"] p,
+[data-theme="cyber"] span,
+[data-theme="cyber"] div,
+[data-theme="cyber"] a,
+[data-theme="cyber"] button,
+[data-theme="cyber"] input {
+  font-family: 'Share Tech Mono', monospace !important;
+}
+
+/* Inputs e borders com brilho neon */
+[data-theme="cyber"] input {
+  border-color: rgba(160,64,255,0.4) !important;
+  color: var(--ink) !important;
+}
+[data-theme="cyber"] input:focus {
+  outline: none;
+  border-color: rgba(0,229,255,0.7) !important;
+  box-shadow: 0 0 0 2px rgba(0,229,255,0.15) !important;
 }
 
 [data-theme="vtm"] {
   --mb: #0d0a0f; --ml: #160e1c; --md: #2a1838;
   --ink: #d4bcd8; --sl: #9060b0; --slm: #503870;
   --cr: #cc1133; --crd: #990e26;
+  --card-shadow: 0 0 0 1px rgba(144,96,176,0.3), 0 8px 24px rgba(0,0,0,0.5);
 }
 
 [data-theme="medieval"] {
   --mb: #2a1f14; --ml: #3a2b1c; --md: #4e3820;
   --ink: #f0dfc0; --sl: #c09050; --slm: #806030;
   --cr: #e08020; --crd: #b06010;
+  --card-shadow: 0 0 0 1px rgba(192,144,80,0.25), 0 8px 24px rgba(0,0,0,0.5);
 }
 
 [data-theme="paladin"] {
   --mb: #f8f4ec; --ml: #ffffff; --md: #e4dcc8;
   --ink: #2c2018; --sl: #4060a8; --slm: #8090c0;
   --cr: #c8a020; --crd: #9a7c10;
+  --card-shadow: 0 8px 32px rgba(0,0,0,0.1);
 }
 
 [data-theme="druid"] {
   --mb: #0e1e0e; --ml: #162616; --md: #223822;
   --ink: #c8e0a8; --sl: #60a040; --slm: #3a6030;
   --cr: #50c840; --crd: #309020;
+  --card-shadow: 0 0 0 1px rgba(96,160,64,0.25), 0 8px 24px rgba(0,0,0,0.5);
 }
 
 [data-theme="metals"] {
   --mb: #161418; --ml: #221e26; --md: #38323e;
   --ink: #dcd4e8; --sl: #c0b890; --slm: #7a7060;
   --cr: #d4a030; --crd: #a87820;
+  --card-shadow: 0 0 0 1px rgba(192,184,144,0.2), 0 8px 24px rgba(0,0,0,0.5);
 }
 
 body {

@@ -36,7 +36,7 @@ export default async function EncountersPage() {
                 background: 'var(--mb)',
                 borderRadius: '14px',
                 padding: '3rem 2.5rem',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                boxShadow: 'var(--card-shadow)',
             }}>
                 <div style={{ marginBottom: '3rem' }}>
                     <div style={{ fontFamily: "'Lora', serif", fontSize: '11px', fontStyle: 'italic', color: 'var(--slm)', letterSpacing: '0.08em', marginBottom: '6px' }}>mesa aberta</div>

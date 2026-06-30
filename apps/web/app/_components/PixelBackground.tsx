@@ -2,89 +2,182 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { THEMES_WITH_ART, applyTheme, loadSavedTheme, saveTheme } from './themes'
+import ThemeSwitcher from './ThemeSwitcher'
+
+type ArtMode = 'splash' | 'soft' | 'hidden' | 'fullscreen'
 
 export default function PixelBackground() {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const pathname = usePathname()
     const isHome = pathname === '/'
-    const [mode, setMode] = useState<'splash' | 'soft' | 'hidden' | 'fullscreen'>(isHome ? 'soft' : 'hidden')
+    const [mode, setMode] = useState<ArtMode>(isHome ? 'soft' : 'hidden')
     const [showSplash, setShowSplash] = useState(false)
+    const [theme, setTheme] = useState('original')
 
-    // Verifica se já mostrou o splash nessa sessão
+    // Carrega tema salvo
     useEffect(() => {
+        const saved = loadSavedTheme()
+        setTheme(saved)
+        applyTheme(saved)
+    }, [])
+
+    const handleThemeChange = (id: string) => {
+        setTheme(id)
+        saveTheme(id)
+        applyTheme(id)
+    }
+
+    // Splash — apenas no tema original (primeira visita na sessão)
+    useEffect(() => {
+        if (theme !== 'original') {
+            // Garante que botões apareçam ao sair e retornar ao tema original
+            setShowSplash(false)
+            return
+        }
         const seen = sessionStorage.getItem('splash-seen')
         if (!seen) {
             setShowSplash(true)
             setMode('splash')
             sessionStorage.setItem('splash-seen', 'true')
-
             const timer = setTimeout(() => {
                 setMode('soft')
-                setTimeout(() => setShowSplash(false), 800) // espera o fade
+                setTimeout(() => setShowSplash(false), 800)
             }, 3000)
-
             return () => clearTimeout(timer)
         }
-    }, [])
+        setShowSplash(false)
+    }, [theme])
 
+    // Canvas — apenas no tema original
     useEffect(() => {
+        if (theme !== 'original') return
         const cv = canvasRef.current
         if (!cv) return
         drawHero(cv)
-    }, [])
+    }, [theme])
 
-    const opacityValue = mode === 'splash' || mode === 'fullscreen' ? 1 : 0.25
+    const opacityValue = mode === 'splash' || mode === 'fullscreen' ? 1 : (isHome ? 0.25 : 0)
+    const cyberOpacity = mode === 'fullscreen' ? 1 : (isHome ? 0.4 : 0.18)
+    const hasArt = THEMES_WITH_ART.has(theme)
 
+    const artToggleButton = hasArt && (
+        <button
+            onClick={() => setMode(mode === 'fullscreen' ? (isHome ? 'soft' : 'hidden') : 'fullscreen')}
+            title={mode === 'fullscreen' ? 'fechar arte' : 'ver arte'}
+            style={{
+                position: 'fixed', top: '20px', right: '20px', zIndex: 300,
+                background: theme === 'cyber' ? 'rgba(0,229,255,0.08)' : 'var(--sl)',
+                border: theme === 'cyber' ? '1px solid rgba(0,229,255,0.4)' : 'none',
+                borderRadius: '999px', padding: '6px', width: '52px', height: '28px',
+                cursor: 'pointer', display: 'flex', alignItems: 'center',
+                justifyContent: mode === 'fullscreen' ? 'flex-end' : 'flex-start',
+                transition: 'all 0.3s ease',
+                boxShadow: theme === 'cyber' ? '0 0 10px rgba(0,229,255,0.2)' : '0 2px 8px rgba(0,0,0,0.15)',
+            }}
+        >
+            <div style={{
+                width: '18px', height: '18px', borderRadius: '50%',
+                background: theme === 'cyber'
+                    ? (mode === 'fullscreen' ? '#ff0080' : 'rgba(0,229,255,0.6)')
+                    : (mode === 'fullscreen' ? 'var(--cr)' : 'var(--mb)'),
+                transition: 'all 0.3s ease',
+                boxShadow: theme === 'cyber'
+                    ? (mode === 'fullscreen' ? '0 0 8px #ff0080' : '0 0 8px rgba(0,229,255,0.6)')
+                    : 'none',
+            }} />
+        </button>
+    )
+
+    // ─── TEMA CYBER ───────────────────────────────────────────
+    if (theme === 'cyber') {
+        const cyberZ = mode === 'fullscreen' ? 200 : 0
+        return (
+            <>
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: cyberZ,
+                    background: '#000', pointerEvents: 'none',
+                    opacity: mode === 'fullscreen' ? 1 : 0,
+                    transition: 'opacity 0.8s ease',
+                }} />
+
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: cyberZ,
+                    backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.18) 3px, rgba(0,0,0,0.18) 4px)',
+                    pointerEvents: 'none',
+                }} />
+
+                <div style={{
+                    position: 'fixed', bottom: 0, left: 0, right: 0,
+                    height: '38%', zIndex: cyberZ, pointerEvents: 'none', overflow: 'hidden',
+                }}>
+                    <div style={{
+                        position: 'absolute', inset: 0,
+                        backgroundImage: [
+                            'linear-gradient(rgba(0,229,255,0.15) 1px, transparent 1px)',
+                            'linear-gradient(90deg, rgba(0,229,255,0.15) 1px, transparent 1px)',
+                        ].join(','),
+                        backgroundSize: '80px 80px',
+                        transform: 'perspective(400px) rotateX(60deg)',
+                        transformOrigin: 'bottom',
+                    }} />
+                    <div style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%',
+                        background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
+                    }} />
+                </div>
+
+                <div style={{
+                    position: 'fixed', bottom: 0, left: 0,
+                    width: '100%', zIndex: cyberZ,
+                    pointerEvents: 'none', opacity: cyberOpacity,
+                    transition: 'opacity 0.8s ease',
+                }}>
+                    <div style={{ position: 'relative', isolation: 'isolate' }}>
+                        <img
+                            src="/cyber-bg.svg"
+                            alt=""
+                            style={{ display: 'block', width: '100%', height: 'auto', filter: 'invert(1)' }}
+                        />
+                        <div style={{
+                            position: 'absolute', inset: 0, pointerEvents: 'none',
+                            background: 'linear-gradient(135deg, #00e5ff 0%, #ff0080 40%, #bf00ff 70%, #00ff41 100%)',
+                            mixBlendMode: 'multiply',
+                        }} />
+                    </div>
+                </div>
+
+                <ThemeSwitcher current={theme} onChange={handleThemeChange} />
+                {artToggleButton}
+            </>
+        )
+    }
+
+    // ─── TEMA ORIGINAL E DEMAIS ────────────────────────────────
     return (
         <>
-            {/* Background fixo */}
-            <div style={{
-                position: 'fixed', inset: 0, zIndex: mode === 'fullscreen' ? 200 : 0,
-                pointerEvents: 'none',
-                opacity: opacityValue,
-                transition: 'opacity 0.8s ease',
-                overflow: 'hidden',
-                background: 'var(--mb)',
-            }}>
-                <canvas ref={canvasRef} width={280} height={158} style={{
-                    width: '100%', height: '100%',
-                    imageRendering: 'pixelated',
-                    objectFit: 'cover',
-                }} />
-            </div>
-
-            {/* Botão "ver arte" — esconde durante splash */}
-            {!showSplash && (
-                <button
-                    onClick={() => setMode(mode === 'fullscreen' ? (isHome ? 'soft' : 'hidden') : 'fullscreen')}
-                    title={mode === 'fullscreen' ? 'fechar arte' : 'ver arte'}
-                    style={{
-                        position: 'fixed',
-                        top: '20px',
-                        right: '20px',
-                        zIndex: 300,
-                        background: 'var(--sl)',
-                        border: 'none',
-                        borderRadius: '999px',
-                        padding: '6px',
-                        width: '52px',
-                        height: '28px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: mode === 'fullscreen' ? 'flex-end' : 'flex-start',
-                        transition: 'all 0.3s ease',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                    }}
-                >
-                    <div style={{
-                        width: '18px',
-                        height: '18px',
-                        borderRadius: '50%',
-                        background: mode === 'fullscreen' ? 'var(--cr)' : 'var(--mb)',
-                        transition: 'background 0.3s ease',
+            {theme === 'original' && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: mode === 'fullscreen' ? 200 : 0,
+                    pointerEvents: 'none',
+                    opacity: opacityValue,
+                    transition: 'opacity 0.8s ease',
+                    overflow: 'hidden',
+                    background: 'var(--mb)',
+                }}>
+                    <canvas ref={canvasRef} width={280} height={158} style={{
+                        width: '100%', height: '100%',
+                        imageRendering: 'pixelated',
+                        objectFit: 'cover',
                     }} />
-                </button>
+                </div>
+            )}
+
+            {!showSplash && (
+                <>
+                    <ThemeSwitcher current={theme} onChange={handleThemeChange} />
+                    {artToggleButton}
+                </>
             )}
         </>
     )

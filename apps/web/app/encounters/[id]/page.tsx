@@ -49,7 +49,7 @@ export default async function EncounterPage({ params }: { params: Promise<{ id: 
                 background: 'var(--mb)',
                 borderRadius: '14px',
                 padding: '2.5rem',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+                boxShadow: 'var(--card-shadow)',
             }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '2rem', gap: '1rem' }}>
                     <div>
