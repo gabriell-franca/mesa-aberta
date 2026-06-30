@@ -34,6 +34,8 @@ export default function CombatantCard({ c, isActive, userEmail }: { c: Combatant
     const [editInit, setEditInit] = useState(String(c.initiative))
     const [editAc, setEditAc] = useState(String(c.ac))
     const [editHpMax, setEditHpMax] = useState(String(c.hpMax))
+    // Estado local para condições — atualização otimista (UI imediata, sync em background)
+    const [localConditions, setLocalConditions] = useState<string[]>(c.conditions)
     const router = useRouter()
 
     const hpPercent = Math.max(0, Math.round((c.hpCurrent / c.hpMax) * 100))
@@ -87,16 +89,19 @@ export default function CombatantCard({ c, isActive, userEmail }: { c: Combatant
         })
     }
 
-    async function toggleCondition(cond: string) {
-        const updated = c.conditions.includes(cond)
-            ? c.conditions.filter(x => x !== cond)
-            : [...c.conditions, cond]
-        await fetch(`${API_URL}/encounters/${c.encounterId}/combatants/${c.id}/status`, {
+    function toggleCondition(cond: string) {
+        // Atualiza UI imediatamente (sem esperar API)
+        const updated = localConditions.includes(cond)
+            ? localConditions.filter(x => x !== cond)
+            : [...localConditions, cond]
+        setLocalConditions(updated)
+
+        // Sincroniza com o servidor em background
+        fetch(`${API_URL}/encounters/${c.encounterId}/combatants/${c.id}/status`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', ...authHeaders(userEmail) },
             body: JSON.stringify({ conditions: updated }),
-        })
-        router.refresh()
+        }).then(() => router.refresh())
     }
 
     function confirmResource() {
@@ -226,7 +231,7 @@ export default function CombatantCard({ c, isActive, userEmail }: { c: Combatant
                             <div style={{ fontFamily: "'Lora', serif", fontSize: '10px', fontStyle: 'italic', color: 'var(--slm)', marginBottom: '8px' }}>clique para marcar — confirme para fechar</div>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '10px' }}>
                                 {CONDITIONS_5E.map(cond => {
-                                    const active = c.conditions.includes(cond)
+                                    const active = localConditions.includes(cond)
                                     return (
                                         <button key={cond} onClick={() => toggleCondition(cond)} style={{ fontFamily: "'Lora', serif", fontSize: '11px', padding: '4px 12px', borderRadius: '20px', border: 'none', cursor: 'pointer', background: active ? 'var(--crd)' : 'var(--md)', color: active ? 'var(--ml)' : 'var(--sl)' }}>
                                             {cond}
@@ -278,9 +283,9 @@ export default function CombatantCard({ c, isActive, userEmail }: { c: Combatant
                     )}
 
                     {/* Condições ativas como tags removíveis */}
-                    {c.conditions.length > 0 && (
+                    {localConditions.length > 0 && (
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', paddingTop: '10px', borderTop: '1px solid var(--md)' }}>
-                            {c.conditions.map(cond => (
+                            {localConditions.map(cond => (
                                 <button key={cond} onClick={() => toggleCondition(cond)} title="clique para remover"
                                     style={{ fontFamily: "'Lora', serif", fontSize: '11px', padding: '3px 10px', borderRadius: '20px', background: 'var(--md)', color: 'var(--crd)', border: 'none', cursor: 'pointer' }}>
                                     {cond} ×
