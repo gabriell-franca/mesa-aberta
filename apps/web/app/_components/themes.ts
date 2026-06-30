@@ -1,16 +1,18 @@
 export interface ThemeConfig {
   id: string
   label: string
+  swatch: string   // cor representativa para o dot
+  ready: boolean   // false = em breve (sem arte ainda)
 }
 
 export const THEMES: ThemeConfig[] = [
-  { id: 'original', label: 'original' },
-  { id: 'cyber', label: 'cyber' },
-  { id: 'vtm', label: 'vtm' },
-  { id: 'medieval', label: 'medieval' },
-  { id: 'paladin', label: 'paladin' },
-  { id: 'druid', label: 'druid' },
-  { id: 'metals', label: 'metals' },
+  { id: 'original', label: 'Original',  swatch: '#921821', ready: true  },
+  { id: 'cyber',    label: 'Cyber',     swatch: '#00e5ff', ready: true  },
+  { id: 'vtm',      label: 'VtM',       swatch: '#cc1133', ready: false },
+  { id: 'medieval', label: 'Medieval',  swatch: '#c09050', ready: false },
+  { id: 'paladin',  label: 'Paladino',  swatch: '#c8a020', ready: false },
+  { id: 'druid',    label: 'Druida',    swatch: '#50c840', ready: false },
+  { id: 'metals',   label: 'Metais',    swatch: '#d4a030', ready: false },
 ]
 
 export const DEFAULT_THEME = 'original'

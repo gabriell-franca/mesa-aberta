@@ -12,6 +12,8 @@ export default function ThemeSwitcher({ current, onChange }: Props) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
+  const currentTheme = THEMES.find(t => t.id === current) ?? THEMES[0]
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
@@ -21,57 +23,96 @@ export default function ThemeSwitcher({ current, onChange }: Props) {
   }, [])
 
   return (
-    <div ref={ref} style={{ position: 'fixed', top: '20px', right: '82px', zIndex: 300 }}>
+    <div ref={ref} style={{ position: 'fixed', top: '16px', right: '82px', zIndex: 300 }}>
+
+      {/* Botão trigger — swatch + nome + seta */}
       <button
         onClick={() => setOpen(o => !o)}
         title="mudar tema"
         style={{
-          background: 'transparent',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '7px',
+          background: 'var(--ml)',
           border: '1px solid var(--md)',
-          borderRadius: '6px',
-          padding: '4px 10px',
-          color: 'var(--sl)',
+          borderRadius: '8px',
+          padding: '6px 12px 6px 8px',
+          color: 'var(--ink)',
           fontFamily: 'inherit',
-          fontSize: '10px',
-          letterSpacing: '0.05em',
+          fontSize: '12px',
+          letterSpacing: '0.04em',
           cursor: 'pointer',
+          boxShadow: 'var(--card-shadow)',
+          transition: 'border-color 0.2s',
         }}
       >
-        {current}
+        {/* Swatch da cor atual */}
+        <span style={{
+          display: 'inline-block',
+          width: '10px', height: '10px',
+          borderRadius: '50%',
+          background: currentTheme.swatch,
+          flexShrink: 0,
+          boxShadow: `0 0 4px ${currentTheme.swatch}66`,
+        }} />
+        <span>tema</span>
+        <span style={{ fontSize: '8px', opacity: 0.6, marginLeft: '1px' }}>
+          {open ? '▲' : '▼'}
+        </span>
       </button>
 
+      {/* Dropdown */}
       {open && (
         <div style={{
           position: 'absolute',
-          top: 'calc(100% + 4px)',
+          top: 'calc(100% + 6px)',
           right: 0,
           background: 'var(--ml)',
           border: '1px solid var(--md)',
-          borderRadius: '6px',
+          borderRadius: '10px',
           overflow: 'hidden',
-          minWidth: '110px',
+          minWidth: '148px',
           boxShadow: 'var(--card-shadow)',
         }}>
           {THEMES.map((t, i) => (
             <button
               key={t.id}
-              onClick={() => { onChange(t.id); setOpen(false) }}
+              onClick={() => { if (t.ready) { onChange(t.id); setOpen(false) } }}
+              disabled={!t.ready}
               style={{
-                display: 'block',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
                 width: '100%',
-                padding: '6px 12px',
+                padding: '9px 14px',
                 background: t.id === current ? 'var(--md)' : 'transparent',
                 border: 'none',
                 borderTop: i > 0 ? '1px solid var(--md)' : 'none',
-                color: 'var(--ink)',
+                color: t.ready ? 'var(--ink)' : 'var(--slm)',
                 fontFamily: 'inherit',
-                fontSize: '10px',
-                letterSpacing: '0.05em',
-                cursor: 'pointer',
+                fontSize: '12px',
+                letterSpacing: '0.04em',
+                cursor: t.ready ? 'pointer' : 'default',
                 textAlign: 'left',
+                opacity: t.ready ? 1 : 0.55,
               }}
             >
-              {t.label}
+              {/* Swatch */}
+              <span style={{
+                display: 'inline-block',
+                width: '9px', height: '9px',
+                borderRadius: '50%',
+                background: t.swatch,
+                flexShrink: 0,
+                boxShadow: t.ready ? `0 0 4px ${t.swatch}88` : 'none',
+              }} />
+              <span style={{ flex: 1 }}>{t.label}</span>
+              {!t.ready && (
+                <span style={{ fontSize: '9px', opacity: 0.7 }}>em breve</span>
+              )}
+              {t.id === current && (
+                <span style={{ fontSize: '9px', color: 'var(--sl)' }}>✓</span>
+              )}
             </button>
           ))}
         </div>
