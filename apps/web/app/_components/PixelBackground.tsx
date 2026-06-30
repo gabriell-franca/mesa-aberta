@@ -57,8 +57,8 @@ export default function PixelBackground() {
         drawHero(cv)
     }, [theme])
 
-    const opacityValue = mode === 'splash' || mode === 'fullscreen' ? 1 : (isHome ? 0.25 : 0)
-    const cyberOpacity = mode === 'fullscreen' ? 1 : (isHome ? 0.4 : 0.18)
+    const opacityValue = mode === 'splash' || mode === 'fullscreen' ? 1 : (isHome ? 0.25 : 0.12)
+    const cyberOpacity = mode === 'fullscreen' ? 0.85 : (isHome ? 0.4 : 0.18)
     const hasArt = THEMES_WITH_ART.has(theme)
 
     const artToggleButton = hasArt && (
@@ -89,27 +89,29 @@ export default function PixelBackground() {
         </button>
     )
 
+    // Esconde conteúdo da página quando arte está em destaque
+    useEffect(() => {
+        if (theme === 'cyber' && mode === 'fullscreen') {
+            document.body.setAttribute('data-art-mode', 'true')
+        } else {
+            document.body.removeAttribute('data-art-mode')
+        }
+        return () => { document.body.removeAttribute('data-art-mode') }
+    }, [theme, mode])
+
     // ─── TEMA CYBER ───────────────────────────────────────────
     if (theme === 'cyber') {
-        const cyberZ = mode === 'fullscreen' ? 200 : 0
         return (
             <>
                 <div style={{
-                    position: 'fixed', inset: 0, zIndex: cyberZ,
-                    background: '#000', pointerEvents: 'none',
-                    opacity: mode === 'fullscreen' ? 1 : 0,
-                    transition: 'opacity 0.8s ease',
-                }} />
-
-                <div style={{
-                    position: 'fixed', inset: 0, zIndex: cyberZ,
+                    position: 'fixed', inset: 0, zIndex: 0,
                     backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.18) 3px, rgba(0,0,0,0.18) 4px)',
                     pointerEvents: 'none',
                 }} />
 
                 <div style={{
                     position: 'fixed', bottom: 0, left: 0, right: 0,
-                    height: '38%', zIndex: cyberZ, pointerEvents: 'none', overflow: 'hidden',
+                    height: '38%', zIndex: 0, pointerEvents: 'none', overflow: 'hidden',
                 }}>
                     <div style={{
                         position: 'absolute', inset: 0,
@@ -129,7 +131,7 @@ export default function PixelBackground() {
 
                 <div style={{
                     position: 'fixed', bottom: 0, left: 0,
-                    width: '100%', zIndex: cyberZ,
+                    width: '100%', zIndex: 0,
                     pointerEvents: 'none', opacity: cyberOpacity,
                     transition: 'opacity 0.8s ease',
                 }}>
